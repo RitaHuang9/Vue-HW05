@@ -1,9 +1,18 @@
 import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+//  configure
+const { defineRule, Form, Field, ErrorMessage, resetForm } = VeeValidate;
+const { required, email, min, max } = VeeValidateRules;
+const { localize, loadLocaleFromURL } = VeeValidateI18n;
 
+defineRule('required', required);
+defineRule('email', email);
+defineRule('min', min);
+defineRule('max', max);
 import userProductModals from './components/userProductModal.js';
 
+
 let userProductModal = {};
-createApp({
+const app = Vue.createApp({
     data() {
         return {
             url: 'https://vue3-course-api.hexschool.io/v2/',
@@ -12,7 +21,16 @@ createApp({
             productId: '',
             temp: {},
             cart: {},
-            loadingItem:{},
+            loadingItem: {},
+            form: {
+                user: {
+                    name: '',
+                    email: '',
+                    tel:'',
+                    address:''
+                },
+                message:'',
+            }
         }
     },
     methods: {
@@ -84,7 +102,7 @@ createApp({
                 .then((res) => {
                     this.getCarts();
                     this.loadingItem = '';
-                    console.log('update購物車', res);
+                    // console.log('update購物車', res);
                 })
                 .catch((err) => {
                     alert(err.data.message);
@@ -106,7 +124,7 @@ createApp({
         },
         // 清空全部購物車
         deleteAllCarts() {
-            
+
             axios.delete(`${this.url}api/${this.api_path}/carts`)
                 .then((res) => {
                     // this.cart = res.data.data
@@ -117,9 +135,26 @@ createApp({
                     alert(err.data.message);
                 })
         },
+        // 送出訂單
+        createOrder() {
+            const order = this.form;
+            
+            axios.post(`${this.url}api/${this.api_path}/order`,{ data:order })
+                .then((res) => {
+                    alert`訂單已送出～～`;
+                    this.$refs.form.resetForm();  //清空表單
+                    this.getCarts();
+                })
+                .catch((err) => {
+                    alert(err.data.message);
+                })
+        }
     },
     components: {
         userProductModals,
+        VForm: Form,
+        VField: Field,
+        ErrorMessage: ErrorMessage,
     },
     // 生命週期：頁面初始化
     mounted() {
@@ -127,4 +162,7 @@ createApp({
         userProductModal = new bootstrap.Modal('#userProductModal');
         this.getCarts();
     }
-}).mount('#app');
+})
+
+
+app.mount('#app');
